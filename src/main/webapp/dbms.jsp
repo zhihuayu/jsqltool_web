@@ -102,6 +102,11 @@
                </div>  
        </script>
         
+       <script id="procedureExportWindow" type="text/html">
+		  <table  class="cloumnTable"> </table>  
+       </script>
+        
+        
 		<style>
 		       .input_g{
 				    margin: 12px auto;;

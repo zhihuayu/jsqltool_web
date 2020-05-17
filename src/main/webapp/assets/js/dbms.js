@@ -85,10 +85,72 @@ function addPanel(){
 	    	
 	    }
 	});
-	
-	
-	
 }
+
+function addProcedureExport(){
+	var database=schema==""?catalog+"":schema+"";
+	var title="存储过程导出";
+	var body = template('procedureExportWindow',{});
+	$("#tt").tabs("add",{ 
+		bodyCls:"procedureExportWindow",
+	    title:title,
+	    content:body,    
+	    closable:true
+	});
+	var tabs=$("#tt").tabs("tabs");
+	var lastTabs=tabs[tabs.length-1];
+	
+	$(lastTabs).find(".cloumnTable").datagrid({ 
+		rownumbers:true,
+		singleSelect:true,
+		striped:true,
+		autoRowHeight:false,
+		fit:true,
+		toolbar:[{
+	    	text:"导出",
+	    	iconCls:"icon-save",
+	    	handler: function(){
+	    		var selected=$(this).parents(".datagrid").find(".cloumnTable").datagrid("getSelected");
+	    		if(selected){
+	    			selected.connectionName=connectionName;
+	    			ajaxSubmit(ctx+"/execute/exportProcedure.action",false,false,selected,function(data){
+	    				if(data.code == 200){
+	    					console.log(data);
+	    					}else{
+	    						alert(data.msg);
+	    					}
+	    				});
+	    		}else{
+	    			alert("请先选择要导出的存储过程");
+	    		}
+
+	    	}
+	    }],
+	    columns:[[    
+	        {field:'db',enable:true,title:'数据库',width:'20%',resizable:true},    
+	        {field:'type',title:'类型',width:'20%',resizable:true},    
+	        {field:'name',title:'名称',width:'20%',resizable:true,},  
+	        {field:'manage',title:'操作',width:'40%',resizable:true,}    
+	    ]],
+	    onLoadSuccess:function(data){
+	    	$(this).datagrid("resize");
+	    },
+	    onSelect:function(title,index){
+	    },
+	});
+	
+	 var param={
+			  connectionName:connectionName
+	   };
+	ajaxSubmit(ctx+"/execute/getProcedure.action",false,false,param,function(data){
+		if(data.code == 200){
+			$(lastTabs).find(".cloumnTable").datagrid('loadData',data.data);
+			}else{
+				alert(data.msg);
+			}
+		});
+}
+
 
 function addProcedure(){
 	var database=schema==""?catalog+"":schema+"";
@@ -394,6 +456,12 @@ $(function(){
 					 text:"存储过程调用"
 				},
 				{
+					id:"procedureExport",
+					 plain:true,
+					 iconCls:'icon-save' ,
+					 text:"存储过程导出"
+				},
+				{
 					id:"sqlSelectWindowAdd",
 					 plain:true,
 					 iconCls:'icon-search' ,
@@ -414,6 +482,7 @@ $(function(){
 		 
 		 $("#sqlSelectWindowAdd").bind('click',addPanel);
 		 $("#procedureAdd").bind('click',addProcedure);
+		 $("#procedureExport").bind("click",addProcedureExport);
 		
 		var t2=null;
 		$("#sqlSelectWindow").window({

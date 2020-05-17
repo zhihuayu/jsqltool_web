@@ -4,18 +4,21 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.fastjson.JSONArray;
 import com.github.jsqltool.config.JsqltoolBuilder;
+import com.github.jsqltool.entity.ConnectionInfo;
 import com.github.jsqltool.enums.JdbcType;
 import com.github.jsqltool.param.ChangeValue;
 import com.github.jsqltool.param.ExecutorSqlParam;
@@ -25,10 +28,13 @@ import com.github.jsqltool.param.SelectTableParam;
 import com.github.jsqltool.param.TableColumnsParam;
 import com.github.jsqltool.param.UpdateParam;
 import com.github.jsqltool.result.SqlResult;
+import com.github.jsqltool.result.SqlResult.Column;
+import com.github.jsqltool.result.SqlResult.Record;
 import com.github.jsqltool.result.TableColumnInfo;
 import com.github.jsqltool.sql.update.impl.UpdateDataHandlerContent;
 import com.github.jsqltool.utils.JdbcUtil;
 import com.github.jsqltool.vo.UpdateResult;
+import com.icbc.vo.ProcedureExportVo;
 import com.icbc.vo.Response;
 
 @RestController
@@ -157,10 +163,103 @@ public class ExecuteSqlAction {
 		}
 	}
 
+	@RequestMapping(path = "/getProcedure.action")
+	public Response getProcedure(@RequestParam("connectionName") String connectionName) {
+		try {
+			JsqltoolBuilder builder = JsqltoolBuilder.builder();
+			ConnectionInfo connectionInfo = builder.getConnectionInfo(user, connectionName);
+			ExecutorSqlParam param = new ExecutorSqlParam();
+			SqlResult executorSql = null;
+			if (StringUtils.containsIgnoreCase(connectionInfo.getDriverClassName(), "mysql")) {
+				String sql = "show procedure status  where db !=\'sys\'";
+				param.setSql(sql);
+				executorSql = builder.executorSql(connectionName, param);
+			} else if (StringUtils.containsIgnoreCase(connectionInfo.getDriverClassName(), "oracle")) {
+				String sql = "select distinct '' DB,type TYPE,name NAME from user_source WHERE TYPE IN ('PACKAGE','PROCEDURE')";
+				param.setSql(sql);
+				executorSql = builder.executorSql(connectionName, param);
+			} else {
+				throw new RuntimeException("不支持该数据库查询存储过程：" + connectionInfo.getDriverClassName());
+			}
+
+			List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
+			if (executorSql != null) {
+				List<Record> records = executorSql.getRecords();
+				Map<String, Integer> keys = getProcedureKeyIndex(executorSql.getColumns());
+				if (records != null) {
+					for (Record record : records) {
+						Map<String, Object> r = new HashMap<String, Object>();
+						// 获取所有的key
+						for (String key : keys.keySet()) {
+							r.put(key, record.getValues().get(keys.get(key)));
+						}
+						result.add(r);
+					}
+				}
+			}
+			return Response.OK(result);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.FAIL(Response.SERVER_ERROR, e.getMessage());
+		}
+	}
+
+	private Map<String, Integer> getProcedureKeyIndex(List<Column> columns) {
+		Map<String, Integer> keys = new HashMap<String, Integer>();
+		List<String> procedureColumn = getProcedureColumn();
+		for (int i = 0; i < columns.size(); i++) {
+			if (procedureColumn.size() > 0) {
+				for (String key : procedureColumn) {
+					if (key.equalsIgnoreCase(columns.get(i).getAlias())) {
+						keys.put(key, i);
+						procedureColumn.remove(key);
+						break;
+					}
+				}
+			}
+		}
+		return keys;
+	}
+
+	private List<String> getProcedureColumn() {
+		List<String> result = new ArrayList<String>();
+		result.addAll(Arrays.asList("db", "type", "name"));
+		return result;
+	}
+
+	@RequestMapping(path = "/exportProcedure.action")
+	public Response exportProcedure(@RequestParam("connectionName") String connectionName, ProcedureExportVo export) {
+		try {
+			JsqltoolBuilder builder = JsqltoolBuilder.builder();
+			ConnectionInfo connectionInfo = builder.getConnectionInfo(user, connectionName);
+			ExecutorSqlParam param = new ExecutorSqlParam();
+			SqlResult executorSql = null;
+			if (StringUtils.containsIgnoreCase(connectionInfo.getDriverClassName(), "mysql")) {
+				StringBuilder sqlBuild = new StringBuilder();
+				sqlBuild.append("show create ");
+				sqlBuild.append(export.getType());
+				sqlBuild.append(" " + export.getDb() + "." + export.getName());
+				param.setSql(sqlBuild.toString());
+				executorSql = builder.executorSql(connectionName, param);
+			} else if (StringUtils.containsIgnoreCase(connectionInfo.getDriverClassName(), "oracle")) {
+				String sql = "select text from user_source WHERE TYPE ='" + export.getType().toUpperCase().trim()
+						+ "' and name='"+export.getName().toUpperCase().trim()+"'";
+				param.setSql(sql);
+				executorSql = builder.executorSql(connectionName, param);
+			} else {
+				throw new RuntimeException("不支持该数据库查询存储过程：" + connectionInfo.getDriverClassName());
+			}
+			return Response.OK(executorSql);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.FAIL(Response.SERVER_ERROR, e.getMessage());
+		}
+	}
+
 	public static void main(String[] args) throws SQLException {
 		JsqltoolBuilder builder = JsqltoolBuilder.builder();
 		Connection connect = builder.connect("测试MySQL");
-		UpdateDataHandlerContent handler =  UpdateDataHandlerContent.builder();
+		UpdateDataHandlerContent handler = UpdateDataHandlerContent.builder();
 		List<UpdateParam> updates = new ArrayList<>();
 		UpdateParam tb1 = new UpdateParam();
 		tb1.setCatalog("test");
