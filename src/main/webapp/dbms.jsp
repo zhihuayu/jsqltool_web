@@ -103,7 +103,7 @@
        </script>
         
        <script id="procedureExportWindow" type="text/html">
-		  <table  class="cloumnTable"> </table>  
+		  <table  class="cloumnTable"> 1</table>  
        </script>
         
         
