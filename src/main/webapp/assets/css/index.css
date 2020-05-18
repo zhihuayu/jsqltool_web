@@ -1,0 +1,100 @@
+  .ztree li  a span.button.table_ico_docu{
+       height: 18px;
+      width: 21px;
+      background-image: url("../img/table_no_open.png");
+   }
+   
+     .ztree li  a.curSelectedNode span.button.table_ico_docu{
+       height: 18px;
+      width: 21px;
+      background-image: url("../img/table_opened.png")
+   }
+   
+      .ztree li span.button.table_ico_open{
+        height: 18px;
+      width: 21px;
+      background-image: url("../img/table_opened.png")
+   }
+
+  .ztree li span.button.table_ico_close{
+     height: 18px;
+     width: 21px;
+     background-image: url("../img/table_no_open.png")
+  }
+  
+  
+    .ztree li  a span.button.connection_ico_docu{
+       height: 18px;
+      width: 21px;
+      background-image: url("../img/connection_no_open.png");
+   }
+   
+      .ztree li span.button.connection_ico_open{
+        height: 18px;
+      width: 21px;
+      background-image: url("../img/connection_opened.png")
+   }
+
+  .ztree li span.button.connection_ico_close{
+     height: 18px;
+     width: 21px;
+     background-image: url("../img/connection_no_open.png")
+  }
+  
+   .ztree li  a span.button.view_ico_docu{
+       height: 18px;
+      width: 21px;
+      background-image: url("../img/view_no_open.png");
+   }
+   
+      .ztree li span.button.view_ico_open{
+        height: 18px;
+      width: 21px;
+      background-image: url("../img/view_opened.png")
+   }
+
+  .ztree li span.button.view_ico_close{
+     height: 18px;
+     width: 21px;
+     background-image: url("../img/view_no_open.png")
+  }
+  
+     .ztree li  a span.button.database_ico_docu{
+       height: 18px;
+      width: 21px;
+      background-image: url("../img/database_no_open.png");
+   }
+   
+      .ztree li span.button.database_ico_open{
+        height: 18px;
+      width: 21px;
+      background-image: url("../img/database_opened.png")
+   }
+
+  .ztree li span.button.database_ico_close{
+     height: 18px;
+     width: 21px;
+     background-image: url("../img/database_no_open.png")
+  }
+  
+    .input_g{
+    width: 353px;
+    margin: 12px auto;;
+  }
+  .input_g .input_span{
+     display: inline-block;
+     text-align: right; 
+      width: 123px;
+    }
+   
+  .layout-panel-west .panel-tool a {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    opacity: 0.6;
+    filter: alpha(opacity=60);
+    margin: 0 0 0 2px;
+    vertical-align: top;
+    margin-right: 13px;
+}
+  

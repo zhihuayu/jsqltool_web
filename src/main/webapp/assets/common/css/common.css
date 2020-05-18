@@ -1,0 +1,10 @@
+ .pagination-info {
+	    margin-right: 36px;
+	}
+	tr td{
+	 max-width:800px;
+	}
+	tr td .datagrid-cell{
+		 text-overflow: ellipsis;
+	     white-space: nowrap;
+	}
