@@ -104,7 +104,7 @@ function addProcedureExport(){
 		rownumbers:true,
 		singleSelect:true,
 		striped:true,
-		autoRowHeight:false,
+		autoRowHeight:true,
 		fit:true,
 		toolbar:[{
 	    	text:"导出",
@@ -133,6 +133,14 @@ function addProcedureExport(){
 	        {field:'manage',title:'操作',width:'40%',resizable:true,}    
 	    ]],
 	    onLoadSuccess:function(data){
+	    	$(".text-linkbutton1").addClass("c1").css("margin-left","16px");
+	    	$(".text-linkbutton1").linkbutton({width:51,height:23});
+	    	$(this).parents(".datagrid-wrap:eq(0)").find(".text-linkbutton1").click(function(){
+	    		console.log($(this).attr("data-row"));
+	    		var param=JSON.parse($(this).attr("data-row"));
+	    		param.connectionName=connectionName
+	    		jump("/execute/exportProcedure.action",param);
+	    	});
 	    	$(this).datagrid("resize");
 	    },
 	    onSelect:function(title,index){
@@ -144,7 +152,14 @@ function addProcedureExport(){
 	   };
 	ajaxSubmit(ctx+"/execute/getProcedure.action",false,false,param,function(data){
 		if(data.code == 200){
-			$(lastTabs).find(".cloumnTable").datagrid('loadData',data.data);
+			var td=[];
+			$.each(data.data,function(){
+				var itemD={};
+				itemD=this;
+				itemD.manage="<div><a  href='#' class='text-linkbutton1' data-row='"+JSON.stringify(itemD)+"' >导出</a></div>"
+				td.push(itemD);
+			});
+			$(lastTabs).find(".cloumnTable").datagrid('loadData',td);
 			}else{
 				alert(data.msg);
 			}

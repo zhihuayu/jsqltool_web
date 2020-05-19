@@ -1,5 +1,6 @@
 package com.icbc.action;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,6 +36,8 @@ import com.github.jsqltool.result.TableColumnInfo;
 import com.github.jsqltool.sql.update.impl.UpdateDataHandlerContent;
 import com.github.jsqltool.utils.JdbcUtil;
 import com.github.jsqltool.vo.UpdateResult;
+import com.icbc.utli.ColumnUtil;
+import com.icbc.utli.ExportUtil;
 import com.icbc.vo.ProcedureExportVo;
 import com.icbc.vo.Response;
 
@@ -172,6 +176,7 @@ public class ExecuteSqlAction {
 			SqlResult executorSql = null;
 			if (StringUtils.containsIgnoreCase(connectionInfo.getDriverClassName(), "mysql")) {
 				String sql = "show procedure status  where db !=\'sys\'";
+//				String sql="select db,name,type from mysql.proc where `type` = 'PROCEDURE' ";
 				param.setSql(sql);
 				executorSql = builder.executorSql(connectionName, param);
 			} else if (StringUtils.containsIgnoreCase(connectionInfo.getDriverClassName(), "oracle")) {
@@ -228,7 +233,8 @@ public class ExecuteSqlAction {
 	}
 
 	@RequestMapping(path = "/exportProcedure.action")
-	public Response exportProcedure(@RequestParam("connectionName") String connectionName, ProcedureExportVo export) {
+	public void exportProcedure(HttpServletResponse response, @RequestParam("connectionName") String connectionName,
+			ProcedureExportVo vo) {
 		try {
 			JsqltoolBuilder builder = JsqltoolBuilder.builder();
 			ConnectionInfo connectionInfo = builder.getConnectionInfo(user, connectionName);
@@ -237,22 +243,35 @@ public class ExecuteSqlAction {
 			if (StringUtils.containsIgnoreCase(connectionInfo.getDriverClassName(), "mysql")) {
 				StringBuilder sqlBuild = new StringBuilder();
 				sqlBuild.append("show create ");
-				sqlBuild.append(export.getType());
-				sqlBuild.append(" " + export.getDb() + "." + export.getName());
+				sqlBuild.append(vo.getType());
+				sqlBuild.append(" " + vo.getDb() + "." + vo.getName());
 				param.setSql(sqlBuild.toString());
 				executorSql = builder.executorSql(connectionName, param);
 			} else if (StringUtils.containsIgnoreCase(connectionInfo.getDriverClassName(), "oracle")) {
-				String sql = "select text from user_source WHERE TYPE ='" + export.getType().toUpperCase().trim()
-						+ "' and name='"+export.getName().toUpperCase().trim()+"'";
+				String sql = null;
+				if (vo.getType().toUpperCase().contentEquals("PACKAGE")) {
+					sql = "select text from user_source WHERE TYPE ='" + vo.getType().toUpperCase().trim()
+							+ "' and name='" + vo.getName().toUpperCase().trim() + "'";
+					param.setSql(sql);
+					executorSql = builder.executorSql(connectionName, param);
+					int columnIndex = ColumnUtil.getColumnIndex("text", executorSql);
+					
+
+				} else {
+					sql = "select text from user_source WHERE TYPE ='" + vo.getType().toUpperCase().trim()
+							+ "' and name='" + vo.getName().toUpperCase().trim() + "'";
+				}
 				param.setSql(sql);
 				executorSql = builder.executorSql(connectionName, param);
 			} else {
 				throw new RuntimeException("不支持该数据库查询存储过程：" + connectionInfo.getDriverClassName());
 			}
-			return Response.OK(executorSql);
+			System.out.println(executorSql);
+			StringBuilder sb = new StringBuilder();
+			sb.append("\"哈哈，这是内容\"");
+			ExportUtil.ExportTxt("测试导出", sb, response);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return Response.FAIL(Response.SERVER_ERROR, e.getMessage());
 		}
 	}
 
