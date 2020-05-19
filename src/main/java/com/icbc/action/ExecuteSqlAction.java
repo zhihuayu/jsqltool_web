@@ -36,7 +36,7 @@ import com.github.jsqltool.result.TableColumnInfo;
 import com.github.jsqltool.sql.update.impl.UpdateDataHandlerContent;
 import com.github.jsqltool.utils.JdbcUtil;
 import com.github.jsqltool.vo.UpdateResult;
-import com.icbc.utli.ColumnUtil;
+import com.icbc.utli.SqlResultUtil;
 import com.icbc.utli.ExportUtil;
 import com.icbc.vo.ProcedureExportVo;
 import com.icbc.vo.Response;
@@ -238,38 +238,53 @@ public class ExecuteSqlAction {
 		try {
 			JsqltoolBuilder builder = JsqltoolBuilder.builder();
 			ConnectionInfo connectionInfo = builder.getConnectionInfo(user, connectionName);
+			StringBuilder content = new StringBuilder();
 			ExecutorSqlParam param = new ExecutorSqlParam();
-			SqlResult executorSql = null;
 			if (StringUtils.containsIgnoreCase(connectionInfo.getDriverClassName(), "mysql")) {
-				StringBuilder sqlBuild = new StringBuilder();
-				sqlBuild.append("show create ");
-				sqlBuild.append(vo.getType());
-				sqlBuild.append(" " + vo.getDb() + "." + vo.getName());
-				param.setSql(sqlBuild.toString());
-				executorSql = builder.executorSql(connectionName, param);
-			} else if (StringUtils.containsIgnoreCase(connectionInfo.getDriverClassName(), "oracle")) {
-				String sql = null;
-				if (vo.getType().toUpperCase().contentEquals("PACKAGE")) {
-					sql = "select text from user_source WHERE TYPE ='" + vo.getType().toUpperCase().trim()
-							+ "' and name='" + vo.getName().toUpperCase().trim() + "'";
-					param.setSql(sql);
-					executorSql = builder.executorSql(connectionName, param);
-					int columnIndex = ColumnUtil.getColumnIndex("text", executorSql);
-					
-
-				} else {
-					sql = "select text from user_source WHERE TYPE ='" + vo.getType().toUpperCase().trim()
-							+ "' and name='" + vo.getName().toUpperCase().trim() + "'";
+				param.setSql(SqlResultUtil.getMySqlUserSourceSql(vo.getType(), vo.getDb(), vo.getName()));
+				List<Object> procedure = SqlResultUtil.getSingleColumnData("Create Procedure",
+						builder.executorSql(connectionName, param));
+				if (!procedure.isEmpty()) {
+					for (Object obj : procedure) {
+						content.append(obj != null ? obj.toString() : "");
+					}
 				}
-				param.setSql(sql);
-				executorSql = builder.executorSql(connectionName, param);
+			} else if (StringUtils.containsIgnoreCase(connectionInfo.getDriverClassName(), "oracle")) {
+				if (vo.getType().toUpperCase().contentEquals("PACKAGE")) {
+					param.setSql(SqlResultUtil.getOralceUserSourceSql("PACKAGE", vo.getName()));
+					List<Object> headPackage = SqlResultUtil.getSingleColumnData("text",
+							builder.executorSql(connectionName, param));
+					if (!headPackage.isEmpty()) {
+						content.append("-- 包头开始\n");
+						for (Object obj : headPackage) {
+							content.append(obj != null ? obj.toString() : "");
+						}
+						content.append("-- 包头结束\n");
+						param.setSql(SqlResultUtil.getOralceUserSourceSql("PACKAGE BODY", vo.getName()));
+						List<Object> bodyPackage = SqlResultUtil.getSingleColumnData("text",
+								builder.executorSql(connectionName, param));
+						if (!bodyPackage.isEmpty()) {
+							content.append("-- 包体开始\n");
+							for (Object obj : bodyPackage) {
+								content.append(obj != null ? obj.toString() : "");
+							}
+							content.append("-- 包体结束\n");
+						}
+					}
+				} else {
+					param.setSql(SqlResultUtil.getOralceUserSourceSql(vo.getType(), vo.getName()));
+					List<Object> ct = SqlResultUtil.getSingleColumnData("text",
+							builder.executorSql(connectionName, param));
+					if (!ct.isEmpty()) {
+						for (Object obj : ct) {
+							content.append(obj != null ? obj.toString() : "");
+						}
+					}
+				}
 			} else {
 				throw new RuntimeException("不支持该数据库查询存储过程：" + connectionInfo.getDriverClassName());
 			}
-			System.out.println(executorSql);
-			StringBuilder sb = new StringBuilder();
-			sb.append("\"哈哈，这是内容\"");
-			ExportUtil.ExportTxt("测试导出", sb, response);
+			ExportUtil.ExportTxt(vo.getName(), content, response);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -136,10 +136,16 @@ function addProcedureExport(){
 	    	$(".text-linkbutton1").addClass("c1").css("margin-left","16px");
 	    	$(".text-linkbutton1").linkbutton({width:51,height:23});
 	    	$(this).parents(".datagrid-wrap:eq(0)").find(".text-linkbutton1").click(function(){
-	    		console.log($(this).attr("data-row"));
 	    		var param=JSON.parse($(this).attr("data-row"));
-	    		param.connectionName=connectionName
-	    		jump("/execute/exportProcedure.action",param);
+	    		layer.confirm('是否导出该数据？', {
+	    			  btn: ['是','否'] //按钮
+	    			}, function(index){
+	    				 layer.close(index);
+	    				 param.connectionName=connectionName
+	    		         jump("/execute/exportProcedure.action",param);
+	    			}, function(index){
+	    				 layer.close(index);
+	    			});
 	    	});
 	    	$(this).datagrid("resize");
 	    },
