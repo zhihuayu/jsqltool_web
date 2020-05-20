@@ -38,10 +38,10 @@ public class SqlResultUtil {
 		}
 	}
 
-	public static int getColumnIndex(String column, SqlResult executorSql) {
+	public static int getColumnIndex(String column, SqlResult sqlResult) {
 		int index = -1;
-		if (executorSql != null) {
-			List<Column> columns = executorSql.getColumns();
+		if (sqlResult != null) {
+			List<Column> columns = sqlResult.getColumns();
 			for (int i = 0; i < columns.size(); i++) {
 				if (column.equalsIgnoreCase(columns.get(i).getAlias())) {
 					index = i;
@@ -52,13 +52,13 @@ public class SqlResultUtil {
 		return index;
 	}
 
-	public static List<Object> getSingleColumnData(String column, SqlResult executorSql) throws NoThatColumnException {
+	public static List<Object> getSingleColumnData(String column, SqlResult sqlResult) throws NoThatColumnException {
 		List<Object> result = new ArrayList<Object>();
-		int index = getColumnIndex(column, executorSql);
+		int index = getColumnIndex(column, sqlResult);
 		if (index == -1) {
 			throw new NoThatColumnException("当前列：" + column + "不存在");
 		}
-		List<Record> records = executorSql.getRecords();
+		List<Record> records = sqlResult.getRecords();
 		if (records != null && !records.isEmpty()) {
 			for (Record record : records) {
 				result.add(record.getValues().get(index));

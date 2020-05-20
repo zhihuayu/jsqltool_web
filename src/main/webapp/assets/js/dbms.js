@@ -88,7 +88,6 @@ function addPanel(){
 }
 
 function addProcedureExport(){
-	var database=schema==""?catalog+"":schema+"";
 	var title="存储过程导出";
 	var body = template('procedureExportWindow',{});
 	$("#tt").tabs("add",{ 
@@ -106,26 +105,6 @@ function addProcedureExport(){
 		striped:true,
 		autoRowHeight:true,
 		fit:true,
-		toolbar:[{
-	    	text:"导出",
-	    	iconCls:"icon-save",
-	    	handler: function(){
-	    		var selected=$(this).parents(".datagrid").find(".cloumnTable").datagrid("getSelected");
-	    		if(selected){
-	    			selected.connectionName=connectionName;
-	    			ajaxSubmit(ctx+"/execute/exportProcedure.action",false,false,selected,function(data){
-	    				if(data.code == 200){
-	    					console.log(data);
-	    					}else{
-	    						alert(data.msg);
-	    					}
-	    				});
-	    		}else{
-	    			alert("请先选择要导出的存储过程");
-	    		}
-
-	    	}
-	    }],
 	    columns:[[    
 	        {field:'db',enable:true,title:'数据库',width:'20%',resizable:true},    
 	        {field:'type',title:'类型',width:'20%',resizable:true},    
@@ -142,7 +121,7 @@ function addProcedureExport(){
 	    			}, function(index){
 	    				 layer.close(index);
 	    				 param.connectionName=connectionName
-	    		         jump("/execute/exportProcedure.action",param);
+	    		         jump(ctx+"/procedure/export.action",param);
 	    			}, function(index){
 	    				 layer.close(index);
 	    			});
@@ -156,7 +135,7 @@ function addProcedureExport(){
 	 var param={
 			  connectionName:connectionName
 	   };
-	ajaxSubmit(ctx+"/execute/getProcedure.action",false,false,param,function(data){
+	ajaxSubmit(ctx+"/procedure/get.action",false,false,param,function(data){
 		if(data.code == 200){
 			var td=[];
 			$.each(data.data,function(){

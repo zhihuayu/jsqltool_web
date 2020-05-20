@@ -3,6 +3,12 @@ package com.icbc.vo;
 import com.github.jsqltool.result.SqlResult.Column;
 import com.github.jsqltool.result.SqlResult.Record;
 
+/**
+ * 用于存储过程导出相关的VO
+ * @author yzh
+ *
+ * @date 2020年5月20日
+ */
 public class ProcedureExportVo {
 
 	private String db;
@@ -32,13 +38,10 @@ public class ProcedureExportVo {
 	public void setName(String name) {
 		this.name = name;
 	}
-	
-	public static ProcedureExportVo getVo(Column column,Record record) {
-		
-		
-		
+
+	public static ProcedureExportVo getVo(Column column, Record record) {
+
 		return null;
 	}
-	
 
 }
