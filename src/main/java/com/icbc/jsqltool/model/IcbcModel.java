@@ -35,4 +35,9 @@ public class IcbcModel implements IModel {
 		return model.delete(user, connectionName);
 	}
 
+	@Override
+	public List<ConnectionInfo> listConnectionInfo(String user) {
+		return model.listConnectionInfo(user);
+	}
+
 }

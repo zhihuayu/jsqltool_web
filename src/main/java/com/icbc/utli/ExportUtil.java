@@ -2,6 +2,7 @@ package com.icbc.utli;
 
 import java.io.IOException;
 
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
 public class ExportUtil {
@@ -28,8 +29,9 @@ public class ExportUtil {
 		// 采用中文文件名需要在此处转码
 		fileName = new String((fileName + "." + fileType).getBytes("UTF-8"), "ISO_8859_1");
 		response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
-		response.getWriter().append(content.toString());
-		response.flushBuffer();
+		ServletOutputStream out = response.getOutputStream();
+		out.write(content.toString().getBytes("UTF-8"));
+		out.close();
 	}
 
 }
