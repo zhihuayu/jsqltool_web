@@ -313,25 +313,39 @@ $(function(){
 	
 	loadTree();
 	function loadTree(){
-		$.ajax({
-			url:ctx+"/db/listConnection.action",
-			type:"POST",
-			timeout:30000,
-			dataType:"json",
-			success:function(data){
-				var childrens=[];
-				var zNodes=[{
-					name:"连接池", open:true, children:childrens
-				}];
-				if(data.code == 200){
-					$.each(data.data,function(v,i){
-						childrens.push({name:i,iconSkin:'connection'});
-					});
-					$.fn.zTree.init($("#treeDemo"), setting, zNodes);
-				}
-			
+		
+		ajaxSubmit(ctx+"/db/listConnection.action",false,false,{},function(data){
+			var childrens=[];
+			var zNodes=[{
+				name:"连接池", open:true, children:childrens
+			}];
+			if(data.code == 200){
+				$.each(data.data,function(v,i){
+					childrens.push({name:i,iconSkin:'connection'});
+				});
+				$.fn.zTree.init($("#treeDemo"), setting, zNodes);
 			}
 		});
+		
+//		$.ajax({
+//			url:ctx+"/db/listConnection.action",
+//			type:"POST",
+//			timeout:30000,
+//			dataType:"json",
+//			success:function(data){
+//				var childrens=[];
+//				var zNodes=[{
+//					name:"连接池", open:true, children:childrens
+//				}];
+//				if(data.code == 200){
+//					$.each(data.data,function(v,i){
+//						childrens.push({name:i,iconSkin:'connection'});
+//					});
+//					$.fn.zTree.init($("#treeDemo"), setting, zNodes);
+//				}
+//			
+//			}
+//		});
 	}
 	
 	function connectWindow(title){
